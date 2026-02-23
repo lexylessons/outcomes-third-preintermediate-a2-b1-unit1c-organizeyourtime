@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organize your time</title>
+<style>
+/* SOFT TECH DESIGN TOKENS */
+:root {
+  --bg-paper: #f0f2f5;
+  --bg-surface: #ffffff;
+  --text-main: #1a202c;
+  --text-dim: #4a5568;
+  --accent: #4a90e2;
+  --border: #e2e8f0;
+  --success: #48bb78;
+  --error: #f56565;
+  --ctx-1: #4a90e2;
+  --ctx-2: #f1c232;
+  --ctx-3: #68d391;
+  --ctx-4: #ed8936;
+  --card-bg: #f0f2f5;
+  --radius: 24px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.06);
+  --border-color: var(--border);
+  --text-muted: var(--text-dim);
+}
+html { font-size: 20px; scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-paper);
+  color: var(--text-main);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0 20px 100px;
+  min-height: 100vh;
+  transition: background-color 0.5s ease;
+}
+/* PROMINENT STATIC TECH GRAPHICS */
+.tech-bg {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.3;
+}
+.tech-bg::before {
+  content: "";
+  position: absolute;
+  background-size: cover;
+  inset: 0;
+  background-image: url("https://blog.myhr.works/hubfs/working-from-home.jpg");
+  mask-image: radial-gradient(circle at center, black, transparent 100%);
+}
+/* Background Shifts */
+body.ctx-1 { --accent: var(--ctx-1); background-color: #eef2ff; }
+body.ctx-2 { --accent: var(--ctx-2); background-color: #f6f1ff; }
+body.ctx-3 { --accent: var(--ctx-3); background-color: #f1f8f3; }
+body.ctx-4 { --accent: var(--ctx-4); background-color: #f8f5f1; }
+/* CONTAINER & HEADER */
+.container { max-width: 850px; margin: 0 auto; position: relative; }
+header { text-align: center; padding: 60px 0 30px; }
+h1 {
+  font-size: 2.5rem;
+  letter-spacing: -0.04em;
+  margin: 10px 0;
+  font-weight: 800;
+  color: var(--text-main);
+  background: linear-gradient(135deg, var(--text-main) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+}
+.subtitle {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+/* SOFT NAVIGATION */
+.top-nav-wrapper { position: sticky; top: 15px; z-index: 100; margin-bottom: 40px; }
+.top-nav {
+  background: rgba(248, 250, 252, 0.75);
+  backdrop-filter: blur(15px);
+  border-radius: 24px;
+  padding: clamp(4px, 1vw, 8px);
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 15px 35px -10px rgba(0,0,0,0.05);
+  position: relative;
+}
+.nav-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 4px;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 16px;
+  transition: all 0.3s;
+}
+.nav-tab:active { transform: scale(0.95); }
+.nav-tab .label { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); }
+.nav-tab .sub { font-size: 0.6rem; color: #a0aec0; text-transform: uppercase; margin-top: 3px; }
+.nav-pill-bg {
+  position: absolute;
+  top: 8px; bottom: 8px; left: 8px;
+  width: calc(25% - 8px);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.5s cubic-bezier(0.2, 1, 0.2, 1);
+  z-index: 1;
+}
+/* highlight active labels */
+body.ctx-1 .nav-tab[data-page="1"] .label { color: var(--ctx-1); }
+body.ctx-2 .nav-tab[data-page="2"] .label { color: var(--ctx-2); }
+body.ctx-3 .nav-tab[data-page="3"] .label { color: var(--ctx-3); }
+body.ctx-4 .nav-tab[data-page="4"] .label { color: var(--ctx-4); }
+/* CARDS */
+.card {
+  background: #f0f2f5;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  padding: 30px;
+  margin-bottom: 24px;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.02),
+    0 10px 20px rgba(0,0,0,0.04),
+    0 20px 40px rgba(0,0,0,0.06);
+}
+.card:hover { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
+h2 {
+  font-size: 1.3rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 0;
+}
+h2::before {
+  content: "";
+  width: 6px;
+  height: 22px;
+  background: var(--accent);
+  border-radius: 10px;
+  opacity: 0.6;
+}
+/* INPUTS & INTERACTIVES */
+.vocab-item {
+  background: rgba(0, 0, 0, 0.02);
+  padding: 20px 25px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  margin-bottom: 10px;
+  transition: 0.3s;
+}
+.vocab-item:hover {
+  background: #fff;
+  border-color: var(--border);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+}
+textarea {
+  width: 95%;
+  border: 2px solid #eaedf0;
+  border-radius: 20px;
+  padding: 20px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.6);
+  resize: vertical;
+  min-height: 120px;
+  transition: 0.3s;
+  color: var(--text-main);
+}
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.08);
+}
+.flashcard {
+  background: #fff;
+  border: 1px solid #eaedf0;
+  padding: 24px;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+.flashcard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.05);
+  border-color: var(--accent);
+}
+.flashcard.saved {
+  border-color:#9cf7b4;
+  background:#f0fff4;
+}
+.gap-input {
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-weight: 600;
+  text-align: center;
+  width: 140px;
+  transition: 0.3s;
+}
+.gap-input:focus { outline: none; background: #fff; border-color: var(--accent); }
+.gap-input.correct { background: #dcfce7; color: #166534; box-shadow: 0 0 15px rgba(72,187,120,0.2); }
+.gap-input.incorrect { background: #fee2e2; color: #991b1b; box-shadow: 0 0 15px rgba(245,101,101,0.2); }
+.btn-check {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: 0.3s;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+}
+.btn-check:hover {
+  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+}
+/* PROGRESS BADGE */
+#saveStatus {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--text-main);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 40px;
+  font-size: 0.85rem;
+  opacity: 0;
+  transition: 0.5s;
+  z-index: 1000;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+/* PAGES */
+.page { display: none; }
+.page.active { display: block; animation: slideUp 0.6s cubic-bezier(0.2, 1, 0.2, 1); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Highlight box for grammar */
+.box-highlight {
+  background: #d4edda;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 15px 0;
+  border: 1px solid #c3e6cb;
+}
+/* Highlight box for grammar */
+.box-highlight0 {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 15px 0;
+  border: 1px solid #c3e6cb;
+}
+/* Audio Player */
+.audio-wrapper {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 30px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+.audio-label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.audio-frame { width: 100%; height: 60px; border: none; overflow: hidden; }
+/* Fact File / Outcomes images */
+.fact-file-img {
+  width: 60%;
+  max-width: 700px;
+  height: auto;
+  border-radius: 16px;
+  margin: 20px auto;
+  display: block;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+.tf-btn {
+  margin-left: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.tf-btn.correct {
+  background: #dcfce7;
+  border-color: var(--success);
+  color: #166534;
+}
+.tf-btn.incorrect {
+  background: #fee2e2;
+  border-color: var(--error);
+  color: #991b1b;
+}
+.tf-feedback {
+  margin-left: 8px;
+  font-size: 0.8rem;
+}
+.q4-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;  /* two equal columns */
+  gap: 12px 24px;
+  align-items: flex-start;
+}
+
+.q4-item {
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+/* optional colour states (you already used similar ones) */
+.q4-item.selected {
+  border-left: 4px solid var(--accent);
+  background: #e8f0fe;
+}
+
+.q4-item.correct {
+  border-left: 4px solid var(--success);
+  background: #e8f5e9;
+}
+
+.q4-item.incorrect {
+  border-left: 4px solid var(--error);
+  background: #ffebee;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  html { font-size: 18px; }
+  .container { padding: 0 10px; }
+  .card { padding: 25px; border-radius: 24px; }
+  .top-nav .sub { display: none; }
+}
+</style>
+</head>
+<body class="ctx-1">
+<div class="tech-bg"></div>
+<div class="container">
+<header>
+  <div class="subtitle">Unit 1 – Jobs and work</div>
+  <h1>Organize your time</h1>
+</header>
+
+<div class="top-nav-wrapper">
+  <div class="top-nav">
+    <div class="nav-pill-bg"></div>
+    <button type="button" class="nav-tab" data-page="1" onclick="goToPage(1)">
+      <span class="label">Listening</span>
+      <span class="sub">Podcast</span>
+    </button>
+    <button type="button" class="nav-tab" data-page="2" onclick="goToPage(2)">
+      <span class="label">Grammar</span>
+      <span class="sub">Zero Conditionals</span>
+    </button>
+    <button type="button" class="nav-tab" data-page="3" onclick="goToPage(3)">
+      <span class="label">Speaking</span>
+      <span class="sub">Discussion</span>
+    </button>
+    <button type="button" class="nav-tab" data-page="4" onclick="goToPage(4)">
+      <span class="label">Dictionary</span>
+      <span class="sub">Review</span>
+    </button>
+  </div>
+</div>
+
+<div id="saveStatus">Progress saved</div>
+
+<form id="lessonForm">
+<!-- PAGE 1: LISTENING -->
+<div class="page active" id="page1">
+  <!-- Objectives & Key Vocabulary -->
+  <section class="card">
+    <h2>Lesson Objectives</h2>
+    <div class="box-highlight0">
+    <ul style="line-height: 1.8;">
+      <li>share information and discuss issues around ways of working</li>
+      <li>practise hearing stress in longer sentences</li>
+      <li>practise listening to a podcast about a work issue</li>
+      <li>talk about what normally happens in common work situations</li>
+    </ul>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Key vocabulary</h2>
+    <p>Click a card to add the term to your personal <strong>Dictionary</strong> (Page 4).</p>
+    <div id="flashcardGrid"
+         style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;"></div>
+  </section>
+
+  <!-- 1.1 -->
+  <section class="card">
+    <h2>1.1 Discuss the questions.</h2>
+    <img
+    src="https://libertystreeteconomics.newyorkfed.org/wp-content/uploads/sites/2/2023/06/LSE_2023_working-remotely_emanuel_460.jpg"
+    alt="Short description of the picture"
+    class="fact-file-img">
+        <div class="box-highlight0">
+    <ol style="line-height: 1.8;">
+      <li>Look at the photo. Where is this person working? What job do you think they do?</li>
+      <li>Do you know anyone who works from home? How much? What do they do?</li>
+      <li>Do you / they like working from home? Why? / Why not?</li>
+      <li>Do you think people do more work at home? Why? / Why not?</li>
+    </ol>
+    </div>
+  </section>
+
+  <!-- 1.2 -->
+  <section class="card">
+    <h2>1.2 🎧 Listen to the beginning of a podcast. Answer the questions.</h2>
+      <!-- Audio Player -->
+    <div class="audio-wrapper">
+      <span class="audio-label">🎧 Listen to the audio</span>
+      <iframe class="audio-frame"
+              src="https://drive.google.com/file/d/12O0AhIVbuM2KU30quVQi3H6phT3Xjgaw/preview">
+      </iframe>
+    </div>
+    <ol style="line-height: 1.8;">
+      <li>What's the podcast about?</li>
+      <li>What problem does the host mention?</li>
+      <li>What do you learn about Linda and Henry?</li>
+    </ol>
+    <textarea id="ex1_2" placeholder="Write your answers here..."></textarea>
+  </section>
+
+  <!-- 1.3 -->
+  <section class="card">
+    <h2>1.3 🎧 When people speak fast, you don't always hear every word. But sometimes two words sound like one. Listen to six phrases from the podcast. How many syllables are in the phrases (3, 4, or 5)?</h2>
+          <!-- Audio Player -->
+    <div class="audio-wrapper">
+      <span class="audio-label">🎧 Listen to the audio</span>
+      <iframe class="audio-frame"
+              src="https://drive.google.com/file/d/1NWLIiZ0dfiD4YhNLnSebrUv-tVmQKLDf/preview">
+      </iframe>
+    </div>
+    <div class="vocab-item">
+      a) <input class="gap-input" id="ex1_3a" placeholder="3 / 4 / 5">
+    </div>
+    <div class="vocab-item">
+      b) <input class="gap-input" id="ex1_3b" placeholder="3 / 4 / 5">
+    </div>
+    <div class="vocab-item">
+      c) <input class="gap-input" id="ex1_3c" placeholder="3 / 4 / 5">
+    </div>
+    <div class="vocab-item">
+      d) <input class="gap-input" id="ex1_3d" placeholder="3 / 4 / 5">
+    </div>
+    <div class="vocab-item">
+      e) <input class="gap-input" id="ex1_3e" placeholder="3 / 4 / 5">
+    </div>
+    <div class="vocab-item">
+      f) <input class="gap-input" id="ex1_3f" placeholder="3 / 4 / 5">
+    </div>
+    <button type="button" class="btn-check" onclick="checkEx1_3()">Check answers</button>
+    <p id="ex1_3_feedback" style="font-size:0.9rem; color:var(--text-dim); margin-top:8px;"></p>
+  </section>
+
+  <!-- 1.4 -->
+  <section class="card">
+    <h2>1.4 🎧 Listen to the rest of the podcast. What advice does Linda give Henry at the end? Do you think it's good advice?</h2>
+            <div class="audio-wrapper">
+      <span class="audio-label">🎧 Listen to the audio</span>
+      <iframe class="audio-frame"
+              src="https://drive.google.com/file/d/1aAW5ZcW5tyfwCi6mQbLR_WmJKQYxvk0Y/preview">
+      </iframe>
+    </div>
+    <textarea id="ex1_4" placeholder="Write your answer here..."></textarea>
+  </section>
+
+<!-- 1.5 -->
+<section class="card">
+  <h2>1.5 🎧 Are these statements true (T) or false (F)? Click to check.</h2>
+  <div class="audio-wrapper">
+    <span class="audio-label">🎧 Listen to the audio</span>
+    <iframe class="audio-frame"
+            src="https://drive.google.com/file/d/1aAW5ZcW5tyfwCi6mQbLR_WmJKQYxvk0Y/preview">
+    </iframe>
+  </div>
+
+  <ol style="line-height: 1.8;" id="ex1_5_list">
+    <li data-answer="F">
+      Henry isn't earning anything.
+      <button type="button" class="tf-btn" data-value="T">T</button>
+      <button type="button" class="tf-btn" data-value="F">F</button>
+      <span class="tf-feedback"></span>
+    </li>
+    <li data-answer="T">
+      He lives with someone.
+      <button type="button" class="tf-btn" data-value="T">T</button>
+      <button type="button" class="tf-btn" data-value="F">F</button>
+      <span class="tf-feedback"></span>
+    </li>
+    <li data-answer="T">
+      Henry's office is also his bedroom.
+      <button type="button" class="tf-btn" data-value="T">T</button>
+      <button type="button" class="tf-btn" data-value="F">F</button>
+      <span class="tf-feedback"></span>
+    </li>
+    <li data-answer="F">
+      He gets up early.
+      <button type="button" class="tf-btn" data-value="T">T</button>
+      <button type="button" class="tf-btn" data-value="F">F</button>
+      <span class="tf-feedback"></span>
+    </li>
+    <li data-answer="F">
+      He can't sit down in the kitchen area.
+      <button type="button" class="tf-btn" data-value="T">T</button>
+      <button type="button" class="tf-btn" data-value="F">F</button>
+      <span class="tf-feedback"></span>
+    </li>
+    <li data-answer="F">
+      He has very good wi‑fi in his flat.
+      <button type="button" class="tf-btn" data-value="T">T</button>
+      <button type="button" class="tf-btn" data-value="F">F</button>
+      <span class="tf-feedback"></span>
+    </li>
+    <li data-answer="T">
+      He's eating more and doing less exercise.
+      <button type="button" class="tf-btn" data-value="T">T</button>
+      <button type="button" class="tf-btn" data-value="F">F</button>
+      <span class="tf-feedback"></span>
+    </li>
+  </ol>
+</section>
+
+
+  <!-- 1.6 -->
+  <section class="card">
+    <h2>1.6 Work in groups. Discuss the questions.</h2>
+    <ol style="line-height: 1.8;">
+      <li>Do you have a good work–life balance? Why? / Why not?</li>
+      <li>What time of day do you work best?</li>
+      <li>Can you think of three or four pieces of advice for Henry?<br>
+        <em style="color: var(--accent);">Try to ...<br>Don't ...</em>
+      </li>
+    </ol>
+  </section>
+</div>
+
+<!-- PAGE 2: GRAMMAR – ZERO CONDITIONALS -->
+<div class="page" id="page2">
+  <!-- Grammar box -->
+  <section class="card">
+    <div class="box-highlight">
+      <h2 style="margin-top: 0;">Zero conditionals</h2>
+      <p><strong>Use</strong><br>
+      We use zero conditionals to talk about general truths (things which are always true) or when one thing automatically follows another. A zero conditional has two parts: the <em>if</em> clause and the result clause.</p>
+      <p><strong>Form</strong><br>
+      A zero conditional is <em>if</em> + present simple + present simple.<br>
+      <em>If</em> you <strong>want</strong> to start a business, you <strong>need</strong> a clear business plan.<br>
+      <em>If</em> the printer ink <strong>is</strong> low, the red light <strong>comes</strong> on.</p>
+      <p>We can also put the <em>if</em> clause after the main clause. In this case, don't use a comma.<br>
+      I always <strong>go</strong> to bed early <em>if</em> I <strong>have</strong> an early start the next day.<br>
+      You <strong>don't</strong> pass the exam <em>if</em> you <strong>don't</strong> get 50%.</p>
+      <p>Note that we sometimes use <em>can</em>('t) in zero conditional sentences.<br>
+      If I <strong>drink</strong> too much coffee during the day, I <strong>can't sleep</strong>.</p>
+    </div>
+  </section>
+
+ <!-- 2.1 guided discovery – matching boxes -->
+<section class="card">
+  <h2>2.1 Guided discovery.</h2>
+  <p>Match the first parts of the zero conditional sentences (1–6) with the second parts (a–f). Click one box on the left and one on the right.</p>
+
+  <div class="q4-grid" id="ex2_1_grid">
+    <div>
+      <div class="vocab-item q4-item" data-side="left" data-id="1">
+        1. If I don't sleep eight hours a night,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="2">
+        2. If you have problems at work,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="3">
+        3. If you want to retire early,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="4">
+        4. If you don't need to travel to work,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="5">
+        5. If you work from home,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="6">
+        6. If you don't have much space,
+      </div>
+    </div>
+
+    <div>
+      <div class="vocab-item q4-item" data-side="right" data-id="a">
+        a. you can get more sleep and wake up later.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="b">
+        b. you should find a job where you earn a lot.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="c">
+        c. you work from home.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="d">
+        d. do something easier first and deal with it later!
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="e">
+        e. I don't work well because I just feel tired all day.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="f">
+        f. you need to save a lot of money.
+      </div>
+    </div>
+  </div>
+
+  <p id="ex2_1_feedback" style="font-size:0.9rem; color:var(--text-dim); margin-top:8px;"></p>
+</section>
+
+
+  <!-- 2.2 ex1 -->
+  <section class="card">
+    <h2>2.2 Complete the sentences with these pairs of verbs.</h2>
+    <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 2px dashed var(--accent);">
+      <strong>Word bank:</strong><br>
+      be / be &nbsp;&nbsp;&nbsp; fly / get &nbsp;&nbsp;&nbsp; have / employ<br>
+      increase / make &nbsp;&nbsp;&nbsp; leave / not have &nbsp;&nbsp;&nbsp; order / be<br>
+      stay up / not have
+    </div>
+
+    <div class="vocab-item">
+      1. If sales <input class="gap-input" id="ex2_2_1a" placeholder="...">, a company
+      <input class="gap-input" id="ex2_2_1b" placeholder="..."> more profit.
+    </div>
+    <div class="vocab-item">
+      2. My boss <input class="gap-input" id="ex2_2_2a" placeholder="..."> OK if I
+      <input class="gap-input" id="ex2_2_2b" placeholder="..."> occasionally late for work.
+    </div>
+    <div class="vocab-item">
+      3. I usually <input class="gap-input" id="ex2_2_3a" placeholder="..."> the office at five p.m. if I
+      <input class="gap-input" id="ex2_2_3b" placeholder="..."> any work to finish.
+    </div>
+    <div class="vocab-item">
+      4. If you <input class="gap-input" id="ex2_2_4a" placeholder="..."> online, there
+      <input class="gap-input" id="ex2_2_4b" placeholder="..."> a 10% discount.
+    </div>
+    <div class="vocab-item">
+      5. If you <input class="gap-input" id="ex2_2_5a" placeholder="..."> business class, you
+      <input class="gap-input" id="ex2_2_5b" placeholder="..."> better food.
+    </div>
+    <div class="vocab-item">
+      6. If we <input class="gap-input" id="ex2_2_6a" placeholder="..."> a big order, we
+      <input class="gap-input" id="ex2_2_6b" placeholder="..."> extra staff.
+    </div>
+    <div class="vocab-item">
+      7. I only <input class="gap-input" id="ex2_2_7a" placeholder="..."> late if I
+      <input class="gap-input" id="ex2_2_7b" placeholder="..."> work the next day.
+    </div>
+
+    <button type="button" class="btn-check" onclick="checkEx2_2()">Check answers</button>
+    <p id="ex2_2_feedback" style="font-size:0.9rem; color:var(--text-dim); margin-top:8px;"></p>
+  </section>
+
+ <!-- 2.3 ex2 – matching boxes -->
+<section class="card">
+  <h2>2.3 Match the first parts of the sentences (1–8) with the second parts (a–h).</h2>
+  <p>Click one box on the left and one on the right to make a pair.</p>
+
+  <div class="q4-grid" id="ex2_3_grid">
+    <div>
+      <div class="vocab-item q4-item" data-side="left" data-id="1">
+        1. If you finish in the top three,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="2">
+        2. With flights, you can usually get them cheaper if
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="3">
+        3. If you mix red and blue,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="4">
+        4. You can only be successful if
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="5">
+        5. If Brazil beat Germany tomorrow,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="6">
+        6. If water freezes,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="7">
+        7. I love Italian food. I always have pizza if
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="8">
+        8. If the concert is cancelled,
+      </div>
+    </div>
+
+    <div>
+      <div class="vocab-item q4-item" data-side="right" data-id="a">
+        a. you get purple.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="b">
+        b. it's on the menu.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="c">
+        c. it makes ice.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="d">
+        d. they win the World Cup.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="e">
+        e. you get a refund.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="f">
+        f. you get a prize.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="g">
+        g. you book in advance.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="h">
+        h. you work hard.
+      </div>
+    </div>
+  </div>
+
+  <p id="ex2_3_feedback" style="font-size:0.9rem; color:var(--text-dim); margin-top:8px;"></p>
+</section>
+
+
+  <!-- 2.4 ex3 -->
+  <section class="card">
+    <h2>2.4 Complete the sentences with your own ideas.</h2>
+    <ol style="line-height: 1.8;">
+      <li>I generally feel in a good mood if
+        <input class="gap-input" style="width: 260px;" id="ex2_4_1" placeholder="...">.<br>
+        <em style="font-size: 0.85rem; color: var(--text-dim);">Example: I generally feel in a good mood if the weather's sunny.</em>
+      </li>
+      <li>If ever I need to relax, I
+        <input class="gap-input" style="width: 260px;" id="ex2_4_2" placeholder="...">.</li>
+      <li>If I don't understand a word in English, I
+        <input class="gap-input" style="width: 260px;" id="ex2_4_3" placeholder="...">.</li>
+      <li>If I have a lot of energy, I
+        <input class="gap-input" style="width: 260px;" id="ex2_4_4" placeholder="...">.</li>
+      <li>If I'm bored, I
+        <input class="gap-input" style="width: 260px;" id="ex2_4_5" placeholder="...">.</li>
+    </ol>
+  </section>
+
+<!-- 2.5 ex7 – matching boxes -->
+<section class="card">
+  <h2>2.5 Match the first parts of the zero conditional sentences (1–6) with the second parts (a–f).</h2>
+  <p>Click one box on the left and one on the right to make a pair.</p>
+
+  <div class="q4-grid" id="ex2_5_grid">
+    <div>
+      <div class="vocab-item q4-item" data-side="left" data-id="1">
+        1. If I don't sleep eight hours a night,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="2">
+        2. If I have some difficult work to do,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="3">
+        3. If you have problems at work,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="4">
+        4. If you don't need to travel to work,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="5">
+        5. If you want to retire early,
+      </div>
+      <div class="vocab-item q4-item" data-side="left" data-id="6">
+        6. If you don't have much office space,
+      </div>
+    </div>
+
+    <div>
+      <div class="vocab-item q4-item" data-side="right" data-id="a">
+        a. do something easier first and deal with it later!
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="b">
+        b. you should find a job where you earn a lot.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="c">
+        c. you work from home.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="d">
+        d. I don't like having any noise – no radio, no music, nothing.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="e">
+        e. I don't work well because I just feel tired all day.
+      </div>
+      <div class="vocab-item q4-item" data-side="right" data-id="f">
+        f. you need to save a lot of money.
+      </div>
+    </div>
+  </div>
+
+  <p id="ex2_5_feedback" style="font-size:0.9rem; color:var(--text-dim); margin-top:8px;"></p>
+</section>
+
+  <!-- 2.6 ex8 -->
+  <section class="card">
+    <h2>2.6 Discuss which sentences in exercise 2.5 are true for you or are opinions you agree with.</h2>
+    <textarea id="ex2_6" placeholder="Write your discussion notes here..."></textarea>
+  </section>
+
+  <!-- 2.7 ex9 -->
+  <section class="card">
+    <h2>2.7 Do you think these ideas are good or bad? Why? Write at least one zero conditional sentence for each idea.</h2>
+    <ol style="line-height: 2;">
+      <li>Working less<br>
+        <em style="font-size: 0.85rem; color: var(--accent);">If you work less, you lose money.</em><br>
+        <textarea id="ex2_7_1" style="min-height:80px;" placeholder="Your sentence(s)..."></textarea>
+      </li>
+      <li>Working from home<br>
+        <textarea id="ex2_7_2" style="min-height:80px;" placeholder="Your sentence(s)..."></textarea>
+      </li>
+      <li>University students also having a job<br>
+        <textarea id="ex2_7_3" style="min-height:80px;" placeholder="Your sentence(s)..."></textarea>
+      </li>
+      <li>Paying a parent to stay at home<br>
+        <textarea id="ex2_7_4" style="min-height:80px;" placeholder="Your sentence(s)..."></textarea>
+      </li>
+      <li>Retiring early<br>
+        <textarea id="ex2_7_5" style="min-height:80px;" placeholder="Your sentence(s)..."></textarea>
+      </li>
+    </ol>
+  </section>
+</div>
+
+<!-- PAGE 3: SPEAKING -->
+<div class="page" id="page3">
+  <!-- 3.1 -->
+  <section class="card">
+    <h2>Discuss if you think the ideas are good or bad. Explain your views based on experience and / or information you read. </h2>
+    <img src="https://raw.githubusercontent.com/lexylessons/outcomes-third-preintermediate-a2-b1-unit1c-organizeyourtime/refs/heads/main/Screenshot%202026-02-22%20at%2019.40.57.png"
+         alt="Fact File A" class="fact-file-img">
+  </section>
+
+  <!-- 3.2 -->
+  <section class="card">
+    <h2>3.2 Work in pairs. Discuss the questions.</h2>
+    <ol style="line-height: 1.8; margin-top: 20px;">
+      <li>What topics and texts in this unit were the most interesting or useful? What would you like to talk about more if you had time in class?</li>
+      <li>Have you learned any useful phrases to use when describing the job you have or the job you want? If so, what are they and when would you use them?</li>
+      <li>Which part of this unit did you find the most difficult, and why?</li>
+      <li>What can you do at home to revise language from this unit?</li>
+    </ol>
+    <textarea id="ex3_2" placeholder="Write your reflection notes here..."></textarea>
+  </section>
+</div>
+
+<!-- PAGE 4: DICTIONARY (FINAL) -->
+<div class="page" id="page4">
+  <section class="card">
+    <h2>My dictionary</h2>
+    <p>Words and phrases you save from Page 1 will appear here.</p>
+    <div id="dictContainer"
+         style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;"></div>
+    <h3 style="margin-top: 40px;">Additional notes</h3>
+  </section>
+</div>
+
+<button type="button" onclick="resetForm()"
+        style="background:none;border:none;color:var(--text-dim);cursor:pointer;display:block;margin:60px auto;font-size:0.9rem;opacity:0.6;">
+  Reset progress
+</button>
+</form>
+</div>
+
+<script>
+const STORAGE_KEY = 'unit1c_organize_time_';
+const DICT_KEY = STORAGE_KEY + 'dict';
+
+/* NAVIGATION */
+function goToPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page' + n);
+  if (target) target.classList.add('active');
+  document.body.className = 'ctx-' + n;
+  const pill = document.querySelector('.nav-pill-bg');
+  if (pill) pill.style.transform = `translateX(${(n-1) * 100}%)`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* KEY VOCABULARY FLASHCARDS */
+const flashcardData = [
+  { word: "advice", def: "what you tell someone they should do in a situation" },
+  { word: "all part of the service", def: "something extra you do for someone that is normal in your job" },
+  { word: "benefit", def: "a good thing that you get from something" },
+  { word: "business", def: "a company that sells products or services" },
+  { word: "to complain", def: "to say that you are unhappy about something" },
+  { word: "data", def: "information, often in numbers, that you can study" },
+  { word: "to improve", def: "to make something better" },
+  { word: "introduction", def: "the first part of something, when you say what it is about" },
+  { word: "to lie down", def: "to put your body flat on a bed, sofa, or the floor" },
+  { word: "partner", def: "a person you work with or have a close relationship with" },
+  { word: "to rent", def: "to pay money to use a house, flat, or room that is not yours" },
+  { word: "separate", def: "not together; in different places or as different things" },
+  { word: "show", def: "to let someone see something" },
+  { word: "snack", def: "a small amount of food you eat between meals" },
+  { word: "studio flat", def: "a small flat with one main room for living and sleeping" },
+  { word: "to work from home", def: "to do your job in your house, not in an office" },
+  { word: "work-life balance", def: "having enough time for your job and for your personal life" },
+  { word: "workspace", def: "the place where you work, for example your desk or office" }
+];
+
+
+function getDict() {
+  return JSON.parse(localStorage.getItem(DICT_KEY) || '[]');
+}
+function saveDict(dict) {
+  localStorage.setItem(DICT_KEY, JSON.stringify(dict));
+}
+function buildFlashcards() {
+  const grid = document.getElementById('flashcardGrid');
+  if (!grid) return;
+  const dict = getDict();
+  grid.innerHTML = "";
+  flashcardData.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'flashcard' + (dict.some(d => d.word === item.word) ? ' saved' : '');
+    card.innerHTML = `<strong>${item.word}</strong>
+      <div style="font-size:0.85rem; color:var(--text-dim); margin-top:8px">${item.def}</div>`;
+    card.onclick = () => {
+      card.classList.toggle('saved');
+      toggleDict(item);
+    };
+    grid.appendChild(card);
+  });
+}
+function toggleDict(item) {
+  let dict = getDict();
+  const idx = dict.findIndex(d => d.word === item.word);
+  if (idx > -1) dict.splice(idx, 1); else dict.push(item);
+  saveDict(dict);
+  renderDict();
+  showSaved();
+}
+function renderDict() {
+  const container = document.getElementById('dictContainer');
+  if (!container) return;
+  const dict = getDict();
+  container.innerHTML = dict.length
+    ? dict.map(i => `<div class="flashcard saved">
+        <strong>${i.word}</strong>
+        <div style="font-size:0.85rem; color:var(--text-dim); margin-top:8px">${i.def}</div>
+      </div>`).join('')
+    : "<p style='color:var(--text-dim)'>Your dictionary is empty. Click vocabulary cards on Page 1 to add words.</p>";
+}
+
+/* GENERIC MARKER */
+function markInput(el, ok) {
+  if (!el) return;
+  el.classList.remove('correct','incorrect');
+  if (!el.value.trim()) return;
+  el.classList.add(ok ? 'correct' : 'incorrect');
+}
+
+/* 1.3 syllables – sample key (you can tweak numbers later) */
+function checkEx1_3() {
+  const key = {
+    ex1_3a: ['4'],
+    ex1_3b: ['6'],
+    ex1_3c: ['4'],
+    ex1_3d: ['5'],
+    ex1_3e: ['4'],
+    ex1_3f: ['4']
+  };
+  let allOk = true;
+  Object.keys(key).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = el.value.trim();
+    const ok = key[id].includes(val);
+    if (!val || !ok) allOk = false;
+    markInput(el, ok);
+  });
+  const fb = document.getElementById('ex1_3_feedback');
+  if (!fb) return;
+  fb.style.color = allOk ? 'var(--success)' : 'var(--error)';
+  fb.textContent = allOk ? 'All answers are correct – well done!' : 'Some answers need checking.';
+}
+/* 1.5 True / False immediate check */
+function setupEx1_5() {
+  const list = document.getElementById('ex1_5_list');
+  if (!list) return;
+
+  list.querySelectorAll('li').forEach(li => {
+    const correct = li.dataset.answer; // "T" or "F"
+    const feedback = li.querySelector('.tf-feedback');
+    li.querySelectorAll('.tf-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const chosen = btn.dataset.value; // "T" or "F"
+
+        // reset button states
+        li.querySelectorAll('.tf-btn').forEach(b => {
+          b.classList.remove('correct','incorrect');
+        });
+
+        if (chosen === correct) {
+          btn.classList.add('correct');
+          if (feedback) {
+            feedback.textContent = '✓';
+            feedback.style.color = 'var(--success)';
+          }
+        } else {
+          btn.classList.add('incorrect');
+          if (feedback) {
+            feedback.textContent = '✗';
+            feedback.style.color = 'var(--error)';
+          }
+        }
+      });
+    });
+  });
+}
+
+/* 2.1 guided discovery – key from book */
+/* 2.1 matching boxes – immediate check */
+function setupEx2_1_matching() {
+  const grid = document.getElementById('ex2_1_grid');
+  if (!grid) return;
+
+  // correct pairs: left id -> right id
+  const pairs = {
+    "1": "e",  // If I don't sleep eight hours a night, -> I don't work well...
+    "2": "d",  // If you have problems at work, -> do something easier first...
+    "3": "f",  // If you want to retire early, -> you need to save a lot of money.
+    "4": "a",  // If you don't need to travel to work, -> you can get more sleep...
+    "5": "c",  // If you work from home, -> you work from home. (work–space idea)
+    "6": "b"   // If you don't have much space, -> you should find a job where you earn a lot.
+  };
+
+  let leftSel = null;
+  let rightSel = null;
+  const fb = document.getElementById('ex2_1_feedback');
+
+  function clearSelected(side) {
+    grid.querySelectorAll('.q4-item[data-side="' + side + '"]').forEach(el => {
+      if (!el.classList.contains('correct')) {
+        el.classList.remove('selected','incorrect');
+      }
+    });
+  }
+
+  function updateOverallFeedback() {
+    const allCorrect = Object.keys(pairs).every(id => {
+      const left = grid.querySelector('.q4-item[data-side="left"][data-id="' + id + '"]');
+      return left && left.classList.contains('correct');
+    });
+    if (!fb) return;
+    if (allCorrect) {
+      fb.style.color = 'var(--success)';
+      fb.textContent = 'All pairs are correct – well done!';
+    } else {
+      fb.style.color = 'var(--text-dim)';
+      fb.textContent = '';
+    }
+  }
+
+  grid.querySelectorAll('.q4-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const side = item.dataset.side;
+      const id = item.dataset.id;
+      if (item.classList.contains('correct')) return;
+
+      if (side === 'left') {
+        clearSelected('left');
+        item.classList.add('selected');
+        leftSel = id;
+      } else {
+        clearSelected('right');
+        item.classList.add('selected');
+        rightSel = id;
+      }
+
+      if (leftSel && rightSel) {
+        const leftEl = grid.querySelector('.q4-item[data-side="left"][data-id="' + leftSel + '"]');
+        const rightEl = grid.querySelector('.q4-item[data-side="right"][data-id="' + rightSel + '"]');
+        const expectedRight = pairs[leftSel];
+
+        if (!leftEl || !rightEl) return;
+
+        if (rightSel === expectedRight) {
+          leftEl.classList.remove('selected','incorrect');
+          rightEl.classList.remove('selected','incorrect');
+          leftEl.classList.add('correct');
+          rightEl.classList.add('correct');
+          if (fb) {
+            fb.style.color = 'var(--success)';
+            fb.textContent = 'Nice! That pair is correct.';
+          }
+        } else {
+          leftEl.classList.add('incorrect');
+          rightEl.classList.add('incorrect');
+          if (fb) {
+            fb.style.color = 'var(--error)';
+            fb.textContent = 'Not a match – try again.';
+          }
+          setTimeout(() => {
+            leftEl.classList.remove('selected','incorrect');
+            rightEl.classList.remove('selected','incorrect');
+          }, 700);
+        }
+
+        leftSel = null;
+        rightSel = null;
+        updateOverallFeedback();
+      }
+    });
+  });
+}
+
+
+/* 2.2 verb pairs */
+function checkEx2_2() {
+  const key = {
+    ex2_2_1a: ['increase'],
+    ex2_2_1b: ['make'],
+    ex2_2_2a: ['is'],
+    ex2_2_2b: ['am'],
+    ex2_2_3a: ['leave'],
+    ex2_2_3b: ["don\'t have","do not have"],
+    ex2_2_4a: ['order'],
+    ex2_2_4b: ['is'],
+    ex2_2_5a: ['fly'],
+    ex2_2_5b: ['get'],
+    ex2_2_6a: ['have'],
+    ex2_2_6b: ['employ'],
+    ex2_2_7a: ['stay up'],
+    ex2_2_7b: ["don\'t have","do not have"]
+  };
+  let allOk = true;
+  Object.keys(key).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = el.value.trim().toLowerCase();
+    const ok = key[id].some(ans => ans.toLowerCase() === val);
+    if (!val || !ok) allOk = false;
+    markInput(el, ok);
+  });
+  const fb = document.getElementById('ex2_2_feedback');
+  if (!fb) return;
+  fb.style.color = allOk ? 'var(--success)' : 'var(--error)';
+  fb.textContent = allOk ? 'All answers are correct – well done!' : 'Some answers need checking.';
+}
+
+/* 2.3 matching boxes – immediate check */
+function setupEx2_3_matching() {
+  const grid = document.getElementById('ex2_3_grid');
+  if (!grid) return;
+
+  // correct pairs: left id -> right id
+  const pairs = {
+    "1": "f", // finish in the top three -> you get a prize.
+    "2": "g", // flights cheaper -> you book in advance.
+    "3": "a", // mix red and blue -> you get purple.
+    "4": "h", // successful -> you work hard.
+    "5": "d", // Brazil beat Germany -> they win the World Cup.
+    "6": "c", // water freezes -> it makes ice.
+    "7": "b", // always have pizza -> it's on the menu.
+    "8": "e"  // concert cancelled -> you get a refund.
+  };
+
+  let leftSel = null;
+  let rightSel = null;
+  const fb = document.getElementById('ex2_3_feedback');
+
+  function clearSelected(side) {
+    grid.querySelectorAll('.q4-item[data-side="' + side + '"]').forEach(el => {
+      if (!el.classList.contains('correct')) {
+        el.classList.remove('selected','incorrect');
+      }
+    });
+  }
+
+  function updateOverallFeedback() {
+    const allCorrect = Object.keys(pairs).every(id => {
+      const left = grid.querySelector('.q4-item[data-side="left"][data-id="' + id + '"]');
+      return left && left.classList.contains('correct');
+    });
+    if (!fb) return;
+    if (allCorrect) {
+      fb.style.color = 'var(--success)';
+      fb.textContent = 'All pairs are correct – well done!';
+    } else {
+      fb.style.color = 'var(--text-dim)';
+      fb.textContent = '';
+    }
+  }
+
+  grid.querySelectorAll('.q4-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const side = item.dataset.side;
+      const id = item.dataset.id;
+      if (item.classList.contains('correct')) return;
+
+      if (side === 'left') {
+        clearSelected('left');
+        item.classList.add('selected');
+        leftSel = id;
+      } else {
+        clearSelected('right');
+        item.classList.add('selected');
+        rightSel = id;
+      }
+
+      if (leftSel && rightSel) {
+        const leftEl = grid.querySelector('.q4-item[data-side="left"][data-id="' + leftSel + '"]');
+        const rightEl = grid.querySelector('.q4-item[data-side="right"][data-id="' + rightSel + '"]');
+        const expectedRight = pairs[leftSel];
+
+        if (!leftEl || !rightEl) return;
+
+        if (rightSel === expectedRight) {
+          leftEl.classList.remove('selected','incorrect');
+          rightEl.classList.remove('selected','incorrect');
+          leftEl.classList.add('correct');
+          rightEl.classList.add('correct');
+          if (fb) {
+            fb.style.color = 'var(--success)';
+            fb.textContent = 'Nice! That pair is correct.';
+          }
+        } else {
+          leftEl.classList.add('incorrect');
+          rightEl.classList.add('incorrect');
+          if (fb) {
+            fb.style.color = 'var(--error)';
+            fb.textContent = 'Not a match – try again.';
+          }
+          setTimeout(() => {
+            leftEl.classList.remove('selected','incorrect');
+            rightEl.classList.remove('selected','incorrect');
+          }, 700);
+        }
+
+        leftSel = null;
+        rightSel = null;
+        updateOverallFeedback();
+      }
+    });
+  });
+}
+
+
+/* 2.5 matching boxes – immediate check */
+function setupEx2_5_matching() {
+  const grid = document.getElementById('ex2_5_grid');
+  if (!grid) return;
+
+  // correct pairs: left id -> right id
+  const pairs = {
+    "1": "e", // don't sleep -> I don't work well...
+    "2": "a", // difficult work -> do something easier first...
+    "3": "d", // problems at work -> I don't like having any noise...
+    "4": "c", // don't need to travel -> you work from home.
+    "5": "f", // want to retire early -> you need to save a lot of money.
+    "6": "b"  // don't have much office space -> you should find a job where you earn a lot.
+  };
+
+  let leftSel = null;
+  let rightSel = null;
+  const fb = document.getElementById('ex2_5_feedback');
+
+  function clearSelected(side) {
+    grid.querySelectorAll('.q4-item[data-side="' + side + '"]').forEach(el => {
+      if (!el.classList.contains('correct')) {
+        el.classList.remove('selected','incorrect');
+      }
+    });
+  }
+
+  function updateOverallFeedback() {
+    const allCorrect = Object.keys(pairs).every(id => {
+      const left = grid.querySelector('.q4-item[data-side="left"][data-id="' + id + '"]');
+      return left && left.classList.contains('correct');
+    });
+    if (!fb) return;
+    if (allCorrect) {
+      fb.style.color = 'var(--success)';
+      fb.textContent = 'All pairs are correct – well done!';
+    } else {
+      fb.style.color = 'var(--text-dim)';
+      fb.textContent = '';
+    }
+  }
+
+  grid.querySelectorAll('.q4-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const side = item.dataset.side;
+      const id = item.dataset.id;
+      if (item.classList.contains('correct')) return;
+
+      if (side === 'left') {
+        clearSelected('left');
+        item.classList.add('selected');
+        leftSel = id;
+      } else {
+        clearSelected('right');
+        item.classList.add('selected');
+        rightSel = id;
+      }
+
+      if (leftSel && rightSel) {
+        const leftEl = grid.querySelector('.q4-item[data-side="left"][data-id="' + leftSel + '"]');
+        const rightEl = grid.querySelector('.q4-item[data-side="right"][data-id="' + rightSel + '"]');
+        const expectedRight = pairs[leftSel];
+
+        if (!leftEl || !rightEl) return;
+
+        if (rightSel === expectedRight) {
+          leftEl.classList.remove('selected','incorrect');
+          rightEl.classList.remove('selected','incorrect');
+          leftEl.classList.add('correct');
+          rightEl.classList.add('correct');
+          if (fb) {
+            fb.style.color = 'var(--success)';
+            fb.textContent = 'Nice! That pair is correct.';
+          }
+        } else {
+          leftEl.classList.add('incorrect');
+          rightEl.classList.add('incorrect');
+          if (fb) {
+            fb.style.color = 'var(--error)';
+            fb.textContent = 'Not a match – try again.';
+          }
+          setTimeout(() => {
+            leftEl.classList.remove('selected','incorrect');
+            rightEl.classList.remove('selected','incorrect');
+          }, 700);
+        }
+
+        leftSel = null;
+        rightSel = null;
+        updateOverallFeedback();
+      }
+    });
+  });
+}
+
+
+/* SAVE BADGE */
+function showSaved() {
+  const s = document.getElementById('saveStatus');
+  if (!s) return;
+  s.style.opacity = '1';
+  setTimeout(() => { s.style.opacity = '0'; }, 1000);
+}
+
+/* AUTOSAVE */
+window.addEventListener('load', () => {
+  buildFlashcards();
+  renderDict();
+  setupEx1_5();
+  setupEx2_1_matching();
+  setupEx2_3_matching();
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    if (!el.id) return;
+    const saved = localStorage.getItem(STORAGE_KEY + el.id);
+    if (saved !== null) el.value = saved;
+    el.addEventListener('input', () => {
+      localStorage.setItem(STORAGE_KEY + el.id, el.value);
+      showSaved();
+    });
+    el.addEventListener('change', () => {
+      localStorage.setItem(STORAGE_KEY + el.id, el.value);
+      showSaved();
+    });
+  });
+});
+
+/* RESET */
+function resetForm() {
+  if (confirm('Clear all progress?')) {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith(STORAGE_KEY))
+      .forEach(k => localStorage.removeItem(k));
+    location.reload();
+  }
+}
+</script>
+</body>
+</html>
